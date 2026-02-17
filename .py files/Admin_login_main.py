@@ -1,0 +1,201 @@
+import sys
+import os
+import subprocess
+import customtkinter as ctk
+import mysql.connector
+from PIL import Image
+from tkinter import messagebox
+
+# Configuration
+IMAGE_W     = 350   # image width in pixels
+IMAGE_H     = 400   # image height in pixels
+IMAGE_PADX  = 10    # horizontal gap between image and form
+IMAGE_PADY  = 50    # vertical gap above the image and form
+FRAME_PADY  = 80    # vertical gap above the frame
+
+# Helpers
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+def resize_image(size, image_path):
+    full = os.path.join(script_dir, image_path)
+    if not os.path.exists(full):
+        raise FileNotFoundError(f"Image not found: {full}")
+    pil = Image.open(full).resize(size, Image.Resampling.LANCZOS)
+    return ctk.CTkImage(light_image=pil, size=size)
+
+def main_page():
+    subprocess.Popen([sys.executable, os.path.join(script_dir, "main.py")])
+    window.destroy()
+
+def toggle_password_visibility():
+    if show_password_var.get():
+        password_entry.configure(show="")
+    else:
+        password_entry.configure(show="*")
+
+def clear_form():
+    userid_entry.delete(0, "end")
+    password_entry.delete(0, "end")
+
+def Adminloginmain():
+    conn = mysql.connector.connect(        
+        host="localhost", user="root",
+        password="Nedstark@123", database="BIS698W1700_GRP6"
+    )
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT 1 FROM usercredentials "
+        "WHERE Username=%s AND user_password=%s AND Department='admin'",
+        (userid_entry.get(), password_entry.get())
+    )
+    if cur.fetchone():
+        messagebox.showinfo("Message", "Login Successful")
+        subprocess.Popen([sys.executable, os.path.join(script_dir, "Owner.py")])
+        window.destroy()
+    else:
+        invalid_msg.place(relx=0.55, rely=0.6)
+    cur.close()
+    conn.close()
+
+# CTk Appearance 
+ctk.set_appearance_mode("system")
+ctk.set_default_color_theme("green")
+
+# Main Window 
+window = ctk.CTk()
+window.title("Welcome to United Apartments - Admin Login")
+window.geometry("950x500")
+
+# Top Container
+top_frame = ctk.CTkFrame(window, fg_color="transparent")
+top_frame.pack(pady=(IMAGE_PADY, 0))
+
+# Admin Login Image
+bg_img    = resize_image((IMAGE_W, IMAGE_H), "images/adminloginpage.png")
+img_label = ctk.CTkLabel(
+    top_frame,
+    image=bg_img,
+    text="",
+    width=IMAGE_W,
+    height=IMAGE_H
+)
+img_label.pack(side="left", padx=(IMAGE_PADX, 0))
+
+# Login Form Frame
+frame = ctk.CTkFrame(
+    top_frame,
+    fg_color="#FFD485",
+    corner_radius=10,
+    width=IMAGE_W,
+    height=IMAGE_H
+)
+frame.pack(
+    side="left",
+    padx=(IMAGE_PADX, 0),
+    pady=(FRAME_PADY, 0)
+)
+
+user_info_frame = ctk.CTkFrame(frame, fg_color="#d1873d", corner_radius=10)
+user_info_frame.grid(row=0, column=0, padx=20, pady=30)
+
+ctk.CTkLabel(
+    user_info_frame, text="User ID:",
+    font=("Arial", 16, "bold"), text_color="white"
+).grid(row=0, column=0, sticky="e", padx=(10,2), pady=5)
+ctk.CTkLabel(
+    user_info_frame, text="Password:",
+    font=("Arial", 16, "bold"), text_color="white"
+).grid(row=1, column=0, sticky="e", padx=(10,2), pady=5)
+
+userid_entry = ctk.CTkEntry(
+    user_info_frame, font=("Arial", 16),
+    width=300, placeholder_text="Enter Email"
+)
+userid_entry.grid(row=0, column=1, padx=(10,10), pady=5, sticky="w")
+
+password_entry = ctk.CTkEntry(
+    user_info_frame, show="*",
+    font=("Arial", 16), width=300,
+    placeholder_text="Enter Password"
+)
+password_entry.grid(row=1, column=1, padx=(10,10), pady=5, sticky="w")
+
+
+control_frame = ctk.CTkFrame(user_info_frame, fg_color="transparent")
+control_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky="e")
+
+ctk.CTkButton(
+    control_frame, text="Clear Form",
+    command=clear_form,
+    font=("Arial", 10, "bold"),
+    fg_color="#005e2e",
+    text_color="white",
+    width=100, height=30
+).pack(side="right", padx=(0,20))
+
+show_password_var = ctk.BooleanVar()
+ctk.CTkCheckBox(
+    control_frame, text="Show Password",
+    variable=show_password_var,
+    command=toggle_password_visibility,
+    font=("Arial", 12, "bold"),
+    fg_color="#d1873d",
+    width=140
+).pack(side="right", padx=5)
+
+
+invalid_msg = ctk.CTkLabel(
+    window,
+    text="Invalid Credentials! Please Try again.",
+    font=("Arial", 16, "bold"),
+    text_color="#C20A0A",
+    fg_color="#FFD485"
+)
+invalid_msg.place_forget()
+
+
+buttons_frame = ctk.CTkFrame(frame, fg_color="#d1873d", corner_radius=30)
+buttons_frame.grid(row=3, column=0, padx=20, pady=20)
+
+ctk.CTkButton(
+    buttons_frame,
+    text="Sign-In",
+    font=("Arial", 16, "bold"),
+    command=Adminloginmain,
+    fg_color="#005e2e",
+    text_color="white",
+    width=120, height=40
+).grid(row=0, column=0, padx=20, pady=20)
+
+ctk.CTkButton(
+    buttons_frame,
+    text="Main page",
+    font=("Arial", 16, "bold"),
+    command=main_page,
+    fg_color="#005e2e",
+    text_color="white",
+    width=120, height=40
+).grid(row=0, column=1, padx=20, pady=20)
+
+ctk.CTkButton(
+    buttons_frame,
+    text="Exit",
+    font=("Arial", 16, "bold"),
+    command=window.destroy,
+    fg_color="#005e2e",
+    text_color="white",
+    width=120, height=40
+).grid(row=0, column=2, padx=20, pady=20)
+
+
+back_icon   = resize_image((50,50), "images/back.png")
+back_button = ctk.CTkLabel(window, image=back_icon, text="", fg_color="transparent")
+back_button.place(relx=0.95, rely=0.02, anchor="ne")
+back_button.bind("<Button-1>", lambda e: main_page())
+
+ctk.CTkLabel(
+    window, text="Back to Home", font=("Arial",12),
+    text_color="white", fg_color="transparent"
+).place(relx=0.98, rely=0.12, anchor="ne")
+
+window.mainloop()
