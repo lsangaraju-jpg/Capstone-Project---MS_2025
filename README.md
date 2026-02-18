@@ -15,7 +15,7 @@ In the project directory, you can run:
 
 ### `pip install -r requirements.txt`
 
-Installs all required Python dependencies needed to run the application.
+Installs all the required Python dependencies to run the application.
 
 ### `python "py files/main.py"`
 
