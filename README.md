@@ -27,7 +27,7 @@ The main window will open using CustomTkinter.
 - **Interactive Property Location Map**
   - Uses TkinterMapView to display housing and office locations on an interactive map.
   - Selecting a property automatically zooms and centers the map on its location.
-  - Location markers help users quickly understand where properties are located.
+  - Location markers help users quickly understand where properties are located
 
 - **Map Export (PNG & PDF)**
   - The current map view can be saved as an image or a PDF file.
